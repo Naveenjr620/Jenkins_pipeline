@@ -1,25 +1,28 @@
-# Use the official Python base image
-FROM python:3.10-slim
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
+# Use official Ubuntu base image
+FROM ubuntu:latest
+ 
+# Set timezone and install dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    tzdata
+ 
 # Set working directory
 WORKDIR /app
-
-# Copy only requirements first (if you have it)
-# COPY requirements.txt .
-
-# Install system dependencies and python packages
-RUN pip install --upgrade pip \
-    && pip install flask pandas openpyxl
-
-# Copy the entire app
-COPY . .
-
-# Expose the port Flask runs on
+ 
+# Copy all files into the container
+ADD . /app
+ 
+# Create virtual environment and install Python dependencies
+RUN python3 -m venv venv && \
+    ./venv/bin/pip install --upgrade pip && \
+    ./venv/bin/pip install -r requirements.txt
+ 
+# Expose the Flask port
 EXPOSE 5000
-
-# Run the app
-CMD ["python", "app.py"]
+ 
+# Command to run the Flask app
+CMD ["./venv/bin/flask", "run", "--host=0.0.0.0"]
+ 
+ 
