@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+        body { font-family: Arial; background: #f0f0f0; text-align: center; padding-top: 80px; }
+        .container { background: white; padding: 40px; display: inline-block; border-radius: 10px; box-shadow: 0 0 10px gray; }
+        input { padding: 10px; margin: 10px; width: 80%; }
+        .btn { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; }
+        .btn:hover { background: #1e7e34; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url("{{ url_for('static', filename='images/hotel.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Register</h2>
+        <form method="POST">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <input type="submit" class="btn" value="Register">
+        </form>
+        <p>Already have an account? <a href="/login">Login</a></p>
+        {{ message|safe }} <!-- Display the message here -->
+    </div>
+</body>
+</html>

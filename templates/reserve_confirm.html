@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reservation Confirmation</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url("{{ url_for('static', filename='images/hotel.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            position: relative;
+        }
+        .box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            display: inline-block;
+            text-align: left;
+        }
+        h2 {
+            color: #28a745;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        {% if error %}
+            <h2 class="error">{{ error }}</h2>
+        {% else %}
+            <h2>Reservation Confirmed ✅</h2>
+            <div class="info">
+                <p><strong>Name:</strong> {{ name }}</p>
+                <p><strong>Mobile:</strong> {{ mobile }}</p>
+                <p><strong>Table(s):</strong> {{ tables | join(", ") }}</p>
+                <p><strong>Start Time:</strong> {{ start_time }}</p>
+                <p><strong>End Time:</strong> {{ end_time }}</p>
+            </div>
+        {% endif %}
+    </div>
+
+
+    
+</body>
+</html>

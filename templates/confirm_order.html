@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reservation and Order Confirmation</title>
+</head>
+<body>
+    <h2>Reservation Confirmed!</h2>
+    <p>Name: {{ name }}</p>
+    <p>Mobile: {{ mobile }}</p>
+    <p>Reserved Tables: {{ tables }}</p>
+    <p>Start Time: {{ start_time }}</p>
+    <p>End Time: {{ end_time }}</p>
+
+    <h3>Food Order Details:</h3>
+    {% if ordered_items %}
+        <ul>
+        {% for item in ordered_items %}
+            <li>{{ item.name }} - Qty: {{ item.quantity }} - ₹{{ item.total }}</li>
+        {% endfor %}
+        </ul>
+        <p>Subtotal: ₹{{ food_total }}</p>
+        <p>GST: ₹{{ gst }}</p>
+        <p>Service Charge: ₹{{ service_charge }}</p>
+        <p><strong>Total: ₹{{ grand_total }}</strong></p>
+    {% else %}
+        <p>No food items ordered.</p>
+        <p><strong>Total Bill: ₹0</strong></p>
+    {% endif %}
+</body>
+</html>

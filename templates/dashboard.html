@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Maaran Parotta Kadai</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url("{{ url_for('static', filename='images/hotel.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            backdrop-filter: blur(5px);
+            color: rgb(0, 0, 0);
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 60px;
+            font-size: 36px;
+        }
+
+        .welcome {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .option-box {
+            background-color: rgba(255, 255, 255, 0.7);
+            color: black;
+            padding: 20px;
+            border-radius: 15px;
+            width: 200px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .option-box:hover {
+            transform: scale(1.05);
+        }
+
+        .option-box img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .option-box a {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .option-box a:hover {
+            background-color: #3e8e41;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Maaran Parotta Kadai</h1>
+    <div class="welcome">Welcome, {{ username }}!</div>
+
+    <div class="options">
+        <!-- Reserve Table Option -->
+        <div class="option-box">
+            <img src="{{ url_for('static', filename='images/table.jpg') }}" alt="Reserve Table">
+            <h3>Reserve a Table</h3>
+            <a href="{{ url_for('reserve') }}">Reserve</a>
+        </div>
+
+        <!-- Order Food Option -->
+        <div class="option-box">
+            <img src="{{ url_for('static', filename='images/food.jpg') }}" alt="Order Food">
+            <h3>Order Food</h3>
+            <a href="{{ url_for('menu') }}">Order Food</a>
+        </div>
+
+        <a href="/myreservations"><button>View / Cancel My Reservations</button></a>
+
+    </div>
+</body>
+</html>

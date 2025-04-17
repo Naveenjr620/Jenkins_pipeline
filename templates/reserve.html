@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <center><title>Reserve a Table</title></center>
+    <style>
+        body {
+            margin: 0;
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+            background: url("{{ url_for('static', filename='images/hotel.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            position: relative;
+            
+        }
+
+        h2 {
+            margin-bottom: 30px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input, label {
+            margin: 10px;
+            padding: 10px;
+            width: 250px;
+            font-size: 16px;
+        }
+
+        .table-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .table-block {
+            width: 130px;
+            min-height: 140px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reserved {
+            background-color: #888;
+        }
+
+        .chairs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .chair {
+            width: 15px;
+            height: 15px;
+            background-color: white;
+            border-radius: 3px;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        input[type="checkbox"]:disabled + label {
+            color: #ccc;
+        }
+
+        .table-checkbox {
+            margin-top: 8px;
+    
+        }
+
+.content{
+    margin: 80px auto;
+    background: rgba(255,255,255,0.6);
+    padding: 40px;
+    max-width: 300px;
+    border-radius: 15px;
+    margin-top: 30px;
+}
+
+        .table-checkbox label {
+    margin-left: 100px; /* Ensures the label isn't too close to the checkbox */
+    font-size: 16px; /* Optional: Adjust label font size */
+}
+    </style>
+</head>
+<body>
+    <center><h1>Reserve a Table</h1></center>
+
+    <form method="POST">
+        <div class="content">
+            <input type="text" name="name" placeholder="Your Name" pattern="[A-Za-z ]+" required>
+
+        <input type="tel" name="mobile" placeholder="Mobile Number" pattern="[0-9]{10}" maxlength="10" required>
+
+        <label>Start Time:</label>
+<input type="datetime-local" name="start_time" value="2025-04-17T00:00" required>
+ 
+<label>End Time:</label>
+<input type="datetime-local" name="end_time" value="2025-04-17T00:00" required>
+</div>
+        <div class="table-grid">
+            {% for table in tables %}
+                <div class="table-block {% if table.Availability == 'Reserved' %}reserved{% endif %}">
+                    <div><strong>Table {{ table["Table ID"] }}</strong></div>
+                    <div class="capacity-text">Capacity: {{ table["Capacity"]}}</div>
+                    <div class="chairs">
+                        {% for i in range(table["Capacity"]) %}
+                            <div class="chair"></div>
+                        {% endfor %}
+                    </div>
+                    <div class="table-checkbox">
+                        {% if table.Availability == 'Available' %}
+                            <input type="checkbox" name="selected_tables" value="{{ table['Table ID'] }}" id="table_{{ table['Table ID'] }}">
+                            <label for="table_{{ table['Table ID'] }}">Select</label>
+                        {% else %}
+                            <input type="checkbox" disabled>
+                            <label>Reserved</label>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Two buttons: one for Reserve Only, one for Reserve & Order -->
+        <button type="submit" class="btn" name="action" value="reserve">Reserve</button>
+        <button type="submit" class="btn" name="action" value="reserve_and_order">Reserve & Order</button>
+    </form>
+</body>
+</html>

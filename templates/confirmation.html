@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation and Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #a8bdaf;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: rgb(4, 185, 22);
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2, h3 {
+            color: #161b24;
+        }
+        .details, .order-summary {
+            margin-bottom: 20px;
+        }
+        .order-summary table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .order-summary th, .order-summary td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .order-summary th {
+            background-color: #007bff;
+            color: white;
+        }
+        .order-summary td {
+            background-color: #f7f7f7;
+        }
+        .total {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .total p {
+            text-align: right;
+        }
+        .footer {
+            font-weight: bold;
+            
+            margin-top: 30px;
+            text-align: center;
+            color: #ea0a0a;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Reservation & Order Confirmation</h1>
+
+    <div class="details">
+        <h2>Reservation Details</h2>
+        <p><strong>Name:</strong> {{ name }}</p>
+        <p><strong>Mobile:</strong> {{ mobile }}</p>
+        <p><strong>Reserved Tables:</strong> {{ tables | join(', ') }}</p>
+        <p><strong>Start Time:</strong> {{ start_time }}</p>
+        <p><strong>End Time:</strong> {{ end_time }}</p>
+    </div>
+
+    <div class="order-summary">
+        <h3>Food Order Details</h3>
+        {% if ordered_items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Food Item</th>
+                    <th>Quantity</th>
+                    <th>Price (₹)</th>
+                    <th>Subtotal (₹)</th>
+                    <th>GST (18%)</th>
+                    <th>Service Charge (5%)</th>
+                    <th>Total (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ordered_items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.price }}</td>
+                    <td>₹{{ item.subtotal }}</td>
+                    <td>₹{{ item.gst }}</td>
+                    <td>₹{{ item.service_charge }}</td>
+                    <td><strong>₹{{ item.total }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="total">
+            <p><strong>Food Total:</strong> ₹{{ food_total }}</p>
+            <p><strong>GST (18%):</strong> ₹{{ gst }}</p>
+            <p><strong>Service Charge (5%):</strong> ₹{{ service_charge }}</p>
+            <p><strong>Grand Total:</strong> ₹{{ grand_total }}</p>
+        </div>
+        {% else %}
+        <p>No food items ordered. Food bill: ₹0</p>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <p>Thank you for choosing us! We look forward to serving you.</p>
+    </div>
+</div>
+
+</body>
+</html>

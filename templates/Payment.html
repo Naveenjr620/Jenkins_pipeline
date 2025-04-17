@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reservation Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        h2 {
+            color: #007bff;
+        }
+
+        table {
+            width: 60%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        .total-section {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .payment-section {
+            margin-top: 40px;
+            background-color: #ffffff;
+            padding: 20px;
+            width: 60%;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .payment-section h3 {
+            margin-bottom: 10px;
+            color: #28a745;
+        }
+
+        .payment-option {
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        .submit-btn {
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Reservation Confirmation</h2>
+    <p><strong>Name:</strong> {{ name }}</p>
+    <p><strong>Mobile:</strong> {{ mobile }}</p>
+    <p><strong>Reserved Tables:</strong> {{ tables }}</p>
+    <p><strong>Start Time:</strong> {{ start_time }}</p>
+    <p><strong>End Time:</strong> {{ end_time }}</p>
+
+    {% if ordered_items %}
+        <h3>Food Order Details</h3>
+        <table>
+            <tr>
+                <th>Food Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+            {% for item in ordered_items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.price }}</td>
+                    <td>${{ item.total }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <div class="total-section">
+            <p><strong>Food Total:</strong> ${{ food_total }}</p>
+            <p><strong>GST (18%):</strong> ${{ gst }}</p>
+            <p><strong>Service Charge (5%):</strong> ${{ service_charge }}</p>
+            <p><strong>Grand Total:</strong> ${{ grand_total }}</p>
+        </div>
+    {% else %}
+        <p>No food items ordered. Food bill: $0</p>
+    {% endif %}
+
+    <form method="POST" action="/payment" class="payment-section">
+        <h3>Select Payment Method</h3>
+
+        <div class="payment-option">
+            <input type="radio" id="upi" name="payment_method" value="UPI" required>
+            <label for="upi">UPI</label>
+        </div>
+
+        <div class="payment-option">
+            <input type="radio" id="cash" name="payment_method" value="Cash">
+            <label for="cash">Cash</label>
+        </div>
+
+        <div class="payment-option">
+            <input type="radio" id="card" name="payment_method" value="Card">
+            <label for="card">Card</label>
+        </div>
+
+        <button type="submit" class="submit-btn">Confirm Payment</button>
+    </form>
+
+</body>
+</html>
