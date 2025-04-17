@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/Harish-0306/Retail_billing.git'
+                git 'https://github.com/Naveenjr620/Jenkins_pipeline.git'
             }
         }
  
