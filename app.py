@@ -2,6 +2,9 @@ from flask import Flask, request, redirect, render_template, session, url_for
 import pandas as pd
 import os
 from datetime import datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from itsdangerous import URLSafeTimedSerializer
 
 
 
@@ -9,7 +12,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'a_very_secret_key_123!@#'  # Required for session handling
-
+s = URLSafeTimedSerializer(app.secret_key)
 
 
 
@@ -20,7 +23,7 @@ RESERVATIONS_FILE = 'reservations.xlsx'
 
 # Ensure necessary files exist
 for file_path, columns in [
-    (USER_FILE, ['username', 'password']),
+    (USER_FILE, ['email','username', 'password']),
     (TABLE_FILE, ['Table ID', 'Capacity', 'Availability']),
     (FOODMENU_FILE, ['Food Item', 'Price']),
     (RESERVATIONS_FILE, ['Name', 'Mobile', 'Table ID', 'Start Time', 'End Time'])
@@ -43,7 +46,8 @@ def login():
         user_match = df[(df["username"] == username) & (df["password"] == password)]
 
         if not user_match.empty:
-            return redirect(f"/dashboard?username={username}")
+            session["username"] = username  # <- set session properly
+            return redirect("/dashboard")
         else:
             message = "<p style='color:red;'>Invalid username or password</p>"
 
@@ -53,6 +57,7 @@ def login():
 def register():
     message = ""
     if request.method == "POST":
+        email=request.form["email"]
         username = request.form["username"]
         password = request.form["password"]
         df = pd.read_excel(USER_FILE)
@@ -60,7 +65,12 @@ def register():
         if username in df["username"].values:
             message = "<p style='color:red;'>Username already exists</p>"
         else:
-            df.loc[len(df)] = [username, password]
+            new_user = pd.DataFrame([{
+                'email': email,
+                'username': username,
+                'password': password
+            }])
+            df = pd.concat([df, new_user], ignore_index=True)
             df.to_excel(USER_FILE, index=False)
             return redirect("/login")
 
@@ -69,8 +79,8 @@ def register():
 
 @app.route("/dashboard")
 def dashboard():
-    username = request.args.get("username", "Guest")
-    #username = session.get("username")
+    #username = request.args.get("username", "Guest")
+    username = session.get("username","Guest")
     session["username"] = username  # Save username in session
 
     # Enable button only if reservation exists in session
@@ -83,9 +93,9 @@ def reserve():
     df = pd.read_excel(TABLE_FILE)
 
     # Auto-release expired reservations
+    now = datetime.now()
     if os.path.exists(RESERVATIONS_FILE):
         reservations = pd.read_excel(RESERVATIONS_FILE)
-        now = datetime.now()
         still_reserved = []
 
         for _, row in reservations.iterrows():
@@ -99,11 +109,9 @@ def reserve():
         df.to_excel(TABLE_FILE, index=False)
 
     if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-
+        # Use logged-in username if available
+        name = session.get("username") or request.form.get("name")
         mobile = request.form.get("mobile")
-        email = request.form.get("email")
         start_time = request.form.get("start_time")
         end_time = request.form.get("end_time")
         selected = request.form.getlist("selected_tables")
@@ -117,47 +125,43 @@ def reserve():
                 reserved_tables.append(table_id)
 
         if reserved_tables:
-            df.to_excel(TABLE_FILE, index=False)
+            df.to_excel(TABLE_FILE, index=False)  # Save updated table availability
 
             new_reservations = pd.DataFrame([{
                 "Name": name,
                 "Mobile": mobile,
-                "email": email,
                 "Table ID": tid,
                 "Start Time": pd.to_datetime(start_time),
                 "End Time": pd.to_datetime(end_time)
             } for tid in reserved_tables])
 
+            # Safe merge with existing reservations
             if os.path.exists(RESERVATIONS_FILE):
                 existing = pd.read_excel(RESERVATIONS_FILE)
                 combined = pd.concat([existing, new_reservations], ignore_index=True)
             else:
                 combined = new_reservations
 
+            # Ensure column order
+            combined = combined[['Name', 'Mobile', 'Table ID', 'Start Time', 'End Time']]
             combined.to_excel(RESERVATIONS_FILE, index=False)
 
-            # Store in session
+            # Store in session for later use
             session['reservation'] = {
                 'name': name,
                 'mobile': mobile,
-                'email': email,
                 'tables': reserved_tables,
                 'start_time': start_time,
                 'end_time': end_time
             }
 
-            
-
-
             action = request.form.get("action")
             if action == "reserve_and_order":
                 return redirect("/menu")
             else:
-                # Reservation only
                 return render_template("confirmation.html",
                     name=name,
                     mobile=mobile,
-                    email= email,
                     tables=reserved_tables,
                     start_time=start_time,
                     end_time=end_time,
@@ -167,11 +171,15 @@ def reserve():
                     service_charge=0,
                     grand_total=0
                 )
+
         else:
             return render_template("confirmation.html", error="No available tables selected.")
 
     tables = df.to_dict(orient="records")
     return render_template("reserve.html", tables=tables)
+
+
+
 
 @app.route("/menu", methods=["GET", "POST"])
 def menu():
@@ -249,9 +257,64 @@ def menu():
             updated_df = confirmation_df
         updated_df.to_excel(excel_path, index=False)
 
-        
+        # ➕ START PDF GENERATION BLOCK
+        invoice_dir = "static/invoices"
+        os.makedirs(invoice_dir, exist_ok=True)
+        invoice_filename = f"invoice_{reservation['mobile']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+        invoice_path = os.path.join(invoice_dir, invoice_filename)
 
-        
+        c = canvas.Canvas(invoice_path, pagesize=letter)
+        width, height = letter
+        y = height - 50
+
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(200, y, "Invoice Summary")
+        y -= 40
+
+        c.setFont("Helvetica", 12)
+        c.drawString(50, y, f"Name: {reservation['name']}")
+        y -= 20
+        c.drawString(50, y, f"Mobile: {reservation['mobile']}")
+        y -= 20
+        c.drawString(50, y, f"Reserved Tables: {', '.join(str(t) for t in reservation['tables'])}")
+        y -= 20
+        c.drawString(50, y, f"Start Time: {reservation['start_time']}")
+        y -= 20
+        c.drawString(50, y, f"End Time: {reservation['end_time']}")
+        y -= 30
+
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(50, y, "Food Item")
+        c.drawString(200, y, "Qty")
+        c.drawString(250, y, "Price")
+        c.drawString(320, y, "Subtotal")
+        c.drawString(400, y, "GST")
+        c.drawString(450, y, "Service")
+        c.drawString(520, y, "Total")
+        y -= 20
+        c.setFont("Helvetica", 11)
+
+        for item in ordered:
+            c.drawString(50, y, item["name"])
+            c.drawString(200, y, str(item["quantity"]))
+            c.drawString(250, y, f"Rs.{item['price']}")
+            c.drawString(320, y, f"Rs.{item['subtotal']}")
+            c.drawString(400, y, f"Rs.{item['gst']}")
+            c.drawString(450, y, f"Rs.{item['service_charge']}")
+            c.drawString(520, y, f"Rs.{item['total']}")
+            y -= 20
+
+        y -= 20
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(50, y, f"Food Total: Rs.{food_total}")
+        y -= 20
+        c.drawString(50, y, f"GST: Rs.{gst}")
+        y -= 20
+        c.drawString(50, y, f"Service Charge: Rs.{service_charge}")
+        y -= 20
+        c.drawString(50, y, f"Grand Total: Rs.{grand_total}")
+        c.save()
+        # ➕ END PDF BLOCK
 
         return render_template("confirmation.html",
             name=reservation["name"],
@@ -263,32 +326,11 @@ def menu():
             food_total=food_total,
             gst=gst,
             service_charge=service_charge,
-            grand_total=grand_total
+            grand_total=grand_total,
+            invoice_url=url_for('static', filename=f'invoices/{invoice_filename}')
         )
-    
-
-
-
-
-    
 
     return render_template("menu.html", food_items=df.to_dict(orient="records"))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #cancellation
@@ -333,17 +375,94 @@ def my_reservations():
     if user_reservations.empty:
         return render_template("myreservations.html", reservations=[], message="No active reservations found.")
 
-    # Reset index to get the original row indices
-    user_reservations = user_reservations.reset_index()  # Adds the old index as a column named 'index'
+    # Reset index to preserve row index
+    user_reservations = user_reservations.reset_index()
 
     return render_template("myreservations.html", reservations=user_reservations.to_dict(orient="records"))
 
 
 
 
+# ✅ New route just for returning from confirmation
+@app.route("/back_to_dashboard")
+def back_to_dashboard():
+    username = session.get("username", "Guest")
+    if username == "Guest":
+        return redirect("/login")
+
+    can_order = 'reservation' in session and session['reservation']
+    return render_template("dashboard.html", username=username, can_order=can_order)
+
+import pandas as pd
+import os
+import smtplib
+from flask import Flask, request, redirect, render_template, url_for, session
+from email.mime.text import MIMEText
+from itsdangerous import URLSafeTimedSerializer
+ 
+ 
+ 
+ 
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    message = ""
+    if request.method == "POST":
+        email = request.form["email"]
+        df = pd.read_excel(USER_FILE)
+ 
+        if email in df["email"].values:
+            token = s.dumps(email, salt="email-reset")
+            reset_link = url_for('reset_password', token=token, _external=True)
+ 
+            # Send Email
+            sender = "maaranparottakadai2@gmail.com"
+            password = "epbv xslb jtzv ncmf"  # Use your App Password here
+            receiver = email
+ 
+            msg = MIMEText(f"Click to reset your password: {reset_link}")
+            msg["Subject"] = "Reset Your Password"
+            msg["From"] = sender
+            msg["To"] = receiver
+ 
+            try:
+                server = smtplib.SMTP("smtp.gmail.com", 587)
+                server.starttls()
+                server.login(sender, password)
+                server.sendmail(sender, receiver, msg.as_string())
+                server.quit()
+                message = "Reset link sent to your email."
+            except Exception as e:
+                message = f"Error sending email: {e}"
+        else:
+            message = "Email not found."
+ 
+    return render_template("forgot_password.html", message=message)
+ 
+ 
+ 
+ 
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    try:
+        email = s.loads(token, salt="email-reset", max_age=1800)  # Valid for 30 minutes
+    except Exception:
+        return "<p style='color:red;'>Invalid or expired reset link.</p>"
+ 
+    message = ""
+    if request.method == "POST":
+        new_password = request.form["new_password"]
+        df = pd.read_excel(USER_FILE)
+        df.loc[df["email"] == email, "password"] = new_password
+        df.to_excel(USER_FILE, index=False)
+        return redirect("/login")
+ 
+    return render_template("reset_password.html", message=message)
+@app.route("/logout")
+def logout():
+    session.clear()  # Clears all session data
+    return redirect(url_for('home'))  # Redirect to index.html
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
+    app.run(debug=True)
 
