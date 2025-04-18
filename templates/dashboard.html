@@ -64,9 +64,35 @@
             background-color: #3e8e41;
         }
 
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .logout-btn button {
+            padding: 10px 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .logout-btn button:hover {
+            background-color: darkred;
+        }
     </style>
 </head>
 <body>
+
+    <!-- 🔴 Logout Button -->
+    <div class="logout-btn">
+        <a href="{{ url_for('logout') }}">
+            <button>Logout</button>
+        </a>
+    </div>
+
     <h1>Maaran Parotta Kadai</h1>
     <div class="welcome">Welcome, {{ username }}!</div>
 
@@ -82,11 +108,20 @@
         <div class="option-box">
             <img src="{{ url_for('static', filename='images/food.jpg') }}" alt="Order Food">
             <h3>Order Food</h3>
-            <a href="{{ url_for('menu') }}">Order Food</a>
+            {% if can_order %}
+                <a href="{{ url_for('menu') }}">Order Food</a>
+            {% else %}
+                <a href="#" onclick="alert('Please reserve a table first. Food cannot be ordered without a table reservation.');">Order Food</a>
+            {% endif %}
         </div>
 
-        <a href="/myreservations"><button>View / Cancel My Reservations</button></a>
-
+        <!-- My Reservations Button -->
+        <a href="/myreservations">
+            <button style="margin-top: 40px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                View / Cancel My Reservations
+            </button>
+        </a>
     </div>
+
 </body>
 </html>

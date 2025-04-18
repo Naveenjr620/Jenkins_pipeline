@@ -7,7 +7,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #a8bdaf;
+            background: url("{{ url_for('static', filename='images/hotel.jpg') }}") no-repeat center center fixed;
+            
             color: #333;
             margin: 0;
             padding: 0;
@@ -57,14 +58,38 @@
         }
         .footer {
             font-weight: bold;
-            
             margin-top: 30px;
             text-align: center;
             color: #ea0a0a;
         }
+        .action-buttons {
+            text-align: center;
+            margin-top: 30px;
+            color:#007bff;
+        }
+        .action-buttons a {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .action-buttons a.download {
+            background-color:#007bff;
+        }
     </style>
 </head>
 <body>
+
+    <div style="position: absolute; top: 20px; right: 20px;">
+        <a href="{{ url_for('logout') }}">
+            <button style="padding: 10px 20px; background-color: red; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Logout
+            </button>
+        </a>
+    </div>
 
 <div class="container">
     <h1>Reservation & Order Confirmation</h1>
@@ -112,6 +137,17 @@
             <p><strong>GST (18%):</strong> ₹{{ gst }}</p>
             <p><strong>Service Charge (5%):</strong> ₹{{ service_charge }}</p>
             <p><strong>Grand Total:</strong> ₹{{ grand_total }}</p>
+
+            <!-- Modify Order Button -->
+<div style="margin-top: 30px;">
+    <a href="{{ url_for('menu') }}">
+        <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Modify Order
+        </button>
+    </a>
+</div>
+
+
         </div>
         {% else %}
         <p>No food items ordered. Food bill: ₹0</p>
@@ -120,6 +156,13 @@
 
     <div class="footer">
         <p>Thank you for choosing us! We look forward to serving you.</p>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+        {% if invoice_url %}
+        <a href="{{ invoice_url }}" class="download" download>Download Invoice</a>
+        {% endif %}
     </div>
 </div>
 

@@ -105,6 +105,21 @@
     margin-top: 30px;
 }
 
+.action-buttons {
+            text-align: center;
+            margin-top: 30px;
+            color:#007bff;
+        }
+        .action-buttons a {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
         .table-checkbox label {
     margin-left: 100px; /* Ensures the label isn't too close to the checkbox */
     font-size: 16px; /* Optional: Adjust label font size */
@@ -121,10 +136,10 @@
         <input type="tel" name="mobile" placeholder="Mobile Number" pattern="[0-9]{10}" maxlength="10" required>
 
         <label>Start Time:</label>
-<input type="datetime-local" name="start_time" value="2025-04-17T00:00" required>
+<input type="datetime-local" name="start_time" value="yyyy-mm-ddT00:00" required>
  
 <label>End Time:</label>
-<input type="datetime-local" name="end_time" value="2025-04-17T00:00" required>
+<input type="datetime-local" name="end_time" value="yyyy-mm-ddT00:00" required>
 </div>
         <div class="table-grid">
             {% for table in tables %}
@@ -153,5 +168,10 @@
         <button type="submit" class="btn" name="action" value="reserve">Reserve</button>
         <button type="submit" class="btn" name="action" value="reserve_and_order">Reserve & Order</button>
     </form>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </div>
+
 </body>
 </html>
